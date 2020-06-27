@@ -8,12 +8,13 @@ let stripReady = false;
 let mFad = 1;
 let staticColor = [0,0,0,255];
 let unitMultiplier = 0.1;
+let pixelCount = 30;
 
-let board = new firmata.Board('COM31', function () {
+let board = new firmata.Board('/dev/cu.usbmodem142301', function () {
 
     strip = new pixel.Strip({
         pin: 6, // this is still supported as a shorthand
-        length: 30,
+        length: pixelCount,
         firmata: board,
         color_order: pixel.COLOR_ORDER.RGBW,
         skip_firmware_check: true,
@@ -45,8 +46,23 @@ io.on('connection', (socket) => {
         }
     });
     socket.on('fullframe', (data) => {
-        console.log("Full Frame:");
-        console.log(data);
+        if (stripReady) {
+            console.log("Full Frame:");
+            //console.log(data);
+            let fixedColorTemp = 5000;
+            data.forEach(element => {
+                let pCol = element.color.replace("RGBA(","").replace(")","").split(", ").map((x) => parseFloat(x) * 255);
+                    let wColor = rgb2WSimple(pCol[1],pCol[0],pCol[2], fixedColorTemp);
+                    let fColor = wColor.map((x) => Math.round(x * unitMultiplier * parseFloat(element.intensity.replace(",","."))).clamp(0,255));
+                    let fid = parseInt(element.fixtureID)
+                    if(fid > pixelCount-1) {
+                        console.log("Fixture ID too high")
+                    } else {
+                        strip.pixel(fid).color(fColor);
+                    }
+            });
+            strip.show();
+        }
     });
     socket.on('frame', (data) => {
         //console.log('message: ' + JSON.stringify(data));
@@ -57,7 +73,7 @@ io.on('connection', (socket) => {
                         let pCol = data.color.replace("RGBA(","").replace(")","").split(", ").map((x) => parseFloat(x) * 255);
                         let wColor = rgb2WSimple(pCol[1],pCol[0],pCol[2], data.colorTemp);
                         let fColor = wColor.map((x) => Math.round(x * unitMultiplier * parseFloat(data.intensity.replace(",","."))).clamp(0,255));
-                        console.log(fColor);
+                        //console.log(fColor);
                         strip.color(fColor);
                         strip.show();
                     } else {
