@@ -16,7 +16,7 @@ let vfxActive = false;
 let vfxRate = 0;
 
 //Board 
-let board = new firmata.Board('COM5', function () {
+let board = new firmata.Board('COM6', function () {
 
     strip = new pixel.Strip({
         pin: 6, // this is still supported as a shorthand
