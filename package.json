@@ -12,6 +12,6 @@
     "express": "^4.17.1",
     "firmata": "^1.0.0",
     "node-pixel": "github:fg-uulm/node-pixel#master",
-    "socket.io": "^2.3.0"
+    "socket.io": "^2.5.0"
   }
 }
